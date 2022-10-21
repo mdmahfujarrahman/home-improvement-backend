@@ -16,7 +16,7 @@ export const uploadImage =async (req, res) => {
                     // Setting up S3 upload parameters
                     const params = {
                         Bucket: process.env.BUCKET_NAME,
-                        Key: file.originalname,
+                        Key: Date.now() +"-" +file.originalname,
                         Body: file.buffer,
                         ACL: "public-read",
                     };

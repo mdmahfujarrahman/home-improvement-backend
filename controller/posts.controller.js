@@ -19,7 +19,31 @@ export const getSinglePost = (req, res) => {
         return res.status(200).send(result[0]);
     });
 };
-export const addPost = (req, res) => {};
+export const addPost = (req, res) => {
+
+    const token = req.headers.authorization?.split(" ")[1];
+    if (!token) return res.status(401).send({ message: "Not Authenticated" });
+
+    jwt.verify(token, "jwttoken", (err, userInfo) => {
+        if (err) return res.status(403).send({ message: "Token is not valid" });
+        
+        const query = "INSERT INTO posts (`title`, `des`,`img`,`category`,`date`,`uid`) VALUES(?)"
+        const values = [
+            req.body.title,
+            req.body.des,
+            req.body.img,
+            req.body.category,
+            req.body.date,
+            userInfo.id,
+        ];
+
+        db.query(query, [values], (err, data) =>{
+            if (err) return res.send(err);
+            return res.status(200).send({message: data});
+        })
+    });
+
+};
 export const deletePost = (req, res) => {
     const token = req.headers.authorization?.split(' ')[1]
     if(!token) return res.status(401).send({message: 'Not Authenticated'})
@@ -37,4 +61,28 @@ export const deletePost = (req, res) => {
 
     
 };
-export const updatePost = (req, res) => {};
+export const updatePost = (req, res) => {
+    const token = req.headers.authorization?.split(" ")[1];
+    
+    if (!token) return res.status(401).send({ message: "Not Authenticated" });
+
+    jwt.verify(token, "jwttoken", (err, userInfo) => {
+        console.log(token);
+        if (err) return res.status(403).send({ message: "Token is not valid" });
+
+        const query =
+            "UPDATE posts SET `title`=?, `des`=?, `img`=?,`category`=? WHERE `id`=? AND `uid`= ? ";
+        const values = [
+            req.body.title,
+            req.body.des,
+            req.body.img,
+            req.body.category,
+        ];
+        const postId = req.params.id
+
+        db.query(query, [...values, postId, userInfo.id], (err, data) => {
+            if (err) return res.send(err);
+            return res.status(200).send({ message: "post updated successfully" });
+        });
+    });
+};
